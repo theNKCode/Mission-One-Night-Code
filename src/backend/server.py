@@ -5,9 +5,12 @@ import pywhatkit as kit
 import datetime
 import os
 import subprocess
+import boto3
 
 app = Flask(__name__)
 CORS(app)
+access_key = 'AKIAR7MDJ5NMYS4HXXFH'
+secret_key = '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'
 
 def get_coordinates(location_name):
     geolocator = Nominatim(user_agent="my_geocoder")
@@ -71,25 +74,6 @@ def process_text():
     processed_text = text.upper()  
     return jsonify({'processed_text': processed_text})
 
-@app.route('/api/open', methods=['POST'])
-def open_application():
-    data = request.json
-    app_type = data.get('app_type')
-    
-    if app_type == "notepad":
-        os.system("notepad")
-    elif app_type == "firefox":
-        os.system("start firefox")
-    elif app_type == "vlc":
-        os.system("start vlc")
-    elif app_type == "url":
-        url = data.get('url')
-        os.system(f"start {url}")
-    else:
-        return jsonify({"error": "Invalid application type"}), 400
-    
-    return jsonify({"status": "success"}), 200
-
 @app.route('/open_notepad', methods=['POST'])
 def open_notepad():
     try:
@@ -122,6 +106,110 @@ def open_url():
         return jsonify({"status": "success", "message": f"URL {url} opened successfully"}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/sns', methods=['POST'])
+def sns():
+    data = request.json
+    topic = data['topic']
+    session = boto3.Session(
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name='ap-south-1'
+    )
+    sns_client = session.client('sns')
+    response = sns_client.create_topic(Name=topic)
+    print("Topic ARN:", response['TopicArn'])
+    return response['TopicArn']
+
+@app.route('/snsemail', methods=['POST'])
+def snsemail():
+    data = request.json
+    msg = data['message']
+    subject = data['subject']
+    session = boto3.Session(
+    aws_access_key_id=access_key,
+    aws_secret_access_key=secret_key,
+    region_name='ap-south-1'
+)
+    sns_client = session.client('sns')
+    response = sns_client.publish(
+        TopicArn='arn:aws:sns:ap-south-1:136103717721:nktest',
+        Message=msg,        
+        Subject=subject,
+    )
+
+    print("Email sent successfully and the message id is :",response['MessageId'])
+    return response['MessageId']
+
+@app.route('/ec2')
+def ec2():
+    img="ami-04f8d7ed2f1a54b14"
+    ec2=boto3.resource("ec2",aws_access_key_id=access_key,aws_secret_access_key=secret_key,region_name='ap-south-1')
+    createInstance=ec2.create_instances(
+            ImageId=img,
+            MinCount=1,
+            MaxCount=1,
+            InstanceType="t2.micro",
+    )
+    print("Instance id is :-", createInstance[0].id)
+    return createInstance[0].id
+
+@app.route('/volume')
+def volume():
+    region = 'ap-south-1'
+    ec2_client = boto3.client(
+        'ec2',
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name=region
+        )
+    response = ec2_client.create_volume(
+        AvailabilityZone="ap-south-1a",
+        Size=int(10)
+        )
+    volume_id = response['VolumeId']
+    return volume_id
+
+@app.route('/iamuser')
+def iamuser():
+    data = request.json
+    name = data['name']
+    session = boto3.Session(
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name='ap-south-1'
+    )
+
+    iam_client = session.client('iam')
+
+    username = name
+
+    response = iam_client.create_user(
+        UserName=username
+    )
+    print(f"IAM user '{username}' created successfully!")
+    return username
+
+@app.route('/createbucket')
+def createbucket():
+    region = 'ap-south-1' 
+    data = request.json
+    name = data['name']
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name=region
+    )
+    bucket_name = 'bucket89484-' + name
+    s3_client.create_bucket(
+        Bucket=bucket_name,
+        CreateBucketConfiguration={
+            'LocationConstraint': region
+        }
+    )
+    print(f"Bucket '{bucket_name}' created successfully.")
+    return bucket_name
 
 if __name__ == "__main__":
     app.run(debug=True)
