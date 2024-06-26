@@ -141,36 +141,45 @@ def snsemail():
     print("Email sent successfully and the message id is :",response['MessageId'])
     return response['MessageId']
 
+
 @app.route('/ec2')
 def ec2():
-    img="ami-04f8d7ed2f1a54b14"
-    ec2=boto3.resource("ec2",aws_access_key_id=access_key,aws_secret_access_key=secret_key,region_name='ap-south-1')
-    createInstance=ec2.create_instances(
-            ImageId=img,
-            MinCount=1,
-            MaxCount=1,
-            InstanceType="t2.micro",
+    img = "ami-04f8d7ed2f1a54b14"
+    ec2 = boto3.resource(
+        "ec2",
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name='ap-south-1'
     )
-    print("Instance id is :-", createInstance[0].id)
-    return createInstance[0].id
+    create_instance = ec2.create_instances(
+        ImageId=img,
+        MinCount=1,
+        MaxCount=1,
+        InstanceType="t2.micro",
+    )
+    instance_id = create_instance[0].id
+    print("Instance id is :-", instance_id)
+    return jsonify({'instance_id': instance_id})
 
-@app.route('/volume')
+
+@app.route('/volume', methods=['POST'])
 def volume():
     region = 'ap-south-1'
+    size = request.json['size']
     ec2_client = boto3.client(
         'ec2',
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
         region_name=region
-        )
+    )
     response = ec2_client.create_volume(
         AvailabilityZone="ap-south-1a",
-        Size=int(10)
-        )
+        Size=int(size)
+    )
     volume_id = response['VolumeId']
-    return volume_id
+    return jsonify({'volume_id': volume_id})
 
-@app.route('/iamuser')
+@app.route('/iamuser', methods=['POST'])
 def iamuser():
     data = request.json
     name = data['name']
@@ -182,17 +191,16 @@ def iamuser():
 
     iam_client = session.client('iam')
 
-    username = name
 
     response = iam_client.create_user(
-        UserName=username
+        UserName=name
     )
-    print(f"IAM user '{username}' created successfully!")
-    return username
-
-@app.route('/createbucket')
+    print(f"IAM user '{name}' created successfully!")
+    return jsonify({'username': name})
+    
+@app.route('/createbucket', methods=['POST'])
 def createbucket():
-    region = 'ap-south-1' 
+    region = 'ap-south-1'
     data = request.json
     name = data['name']
     s3_client = boto3.client(
@@ -209,7 +217,7 @@ def createbucket():
         }
     )
     print(f"Bucket '{bucket_name}' created successfully.")
-    return bucket_name
+    return jsonify({'bucket_name': bucket_name})
 
 if __name__ == "__main__":
     app.run(debug=True)
