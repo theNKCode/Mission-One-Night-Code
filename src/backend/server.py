@@ -6,11 +6,13 @@ import datetime
 import os
 import subprocess
 import boto3
+from insta import init
+from twitter import init2
 
 app = Flask(__name__)
 CORS(app)
-access_key = 'AKIAR7MDJ5NMYS4HXXFH'
-secret_key = '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'
+access_key = 'AKIAR7MDJ5NMUERAWYFI'
+secret_key = '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'
 
 def get_coordinates(location_name):
     geolocator = Nominatim(user_agent="my_geocoder")
@@ -219,5 +221,15 @@ def createbucket():
     print(f"Bucket '{bucket_name}' created successfully.")
     return jsonify({'bucket_name': bucket_name})
 
+@app.route('/insta', methods=['GET'])
+def insta():
+    init()
+    return jsonify({'status': 'Success'})
+
+@app.route('/twitter', methods=['GET'])
+def twitter():
+    init2()
+    return jsonify({'status': 'Success'})
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True,host="0.0.0.0",port=5000)
