@@ -11,8 +11,8 @@ from twitter import init2
 
 app = Flask(__name__)
 CORS(app)
-access_key = 'AKIAR7MDJ5NMUERAWYFI'
-secret_key = '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'
+access_key = ''
+secret_key = ''
 
 def get_coordinates(location_name):
     geolocator = Nominatim(user_agent="my_geocoder")

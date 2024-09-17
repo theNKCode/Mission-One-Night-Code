@@ -12,7 +12,7 @@ print("Content-Type: text/plain\n")
 
 try:
     # Configure the API key
-    genai.configure(api_key="AIzaSyD_NP9TmFcYRtxwkc7SGfQsqHO3S-IX6mc")
+    genai.configure(api_key="")
 
     # Define the generation configuration
     generation_config = {
