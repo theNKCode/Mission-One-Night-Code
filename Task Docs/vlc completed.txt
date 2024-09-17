@@ -1,0 +1,439 @@
+[root@localhost docker_run_vlc]# cd Dockerfile
+bash: cd: Dockerfile: Not a directory
+[root@localhost docker_run_vlc]# gedit Dockerfile
+[root@localhost docker_run_vlc]# docker build -t dockerbyvlc:v2 .
+ERROR: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+[root@localhost docker_run_vlc]# systemctl start docker
+[root@localhost docker_run_vlc]# docker build -t dockerbyvlc:v2 .
+[+] Building 0.2s (6/11)                                         docker:default
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 1.07kB                                     0.0s
+ => [internal] load metadata for docker.io/library/centos:7                0.0s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [internal] load build context                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => CACHED [1/7] FROM docker.io/library/centos:7                           0.0s
+ => ERROR [2/7] ADD /etc/yum.repos.d /etc/yum.repos.d                      0.0s
+------
+ > [2/7] ADD /etc/yum.repos.d /etc/yum.repos.d:
+------
+Dockerfile:5
+--------------------
+   3 |     
+   4 |     # Add yum repository configuration
+   5 | >>> ADD /etc/yum.repos.d /etc/yum.repos.d
+   6 |     
+   7 |     # Install necessary repositories and packages
+--------------------
+ERROR: failed to solve: failed to compute cache key: failed to calculate checksum of ref 42e53cf8-a97c-4bfb-8a7d-be2d52715a31::22a6rsfb6uzefy1lfd58hgjd8: "/etc/yum.repos.d": not found
+[root@localhost docker_run_vlc]# vi Dockerfile
+[root@localhost docker_run_vlc]# docker build -t dockerbyvlc:v2 .
+[+] Building 428.1s (9/9) FINISHED                               docker:default
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 1.00kB                                     0.0s
+ => [internal] load metadata for docker.io/library/centos:7                0.0s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => CACHED [1/6] FROM docker.io/library/centos:7                           0.0s
+ => [2/6] RUN yum install -y epel-release     && yum install -y https:/  425.5s
+ => [3/6] RUN sed -i 's/geteuid/getppid/' /usr/bin/vlc                     0.6s 
+ => [4/6] RUN dbus-uuidgen --ensure                                        0.6s 
+ => [5/6] RUN mkdir -p /tmp/xdg && chmod 700 /tmp/xdg                      0.7s 
+ => ERROR [6/6] RUN wget -O /root/sample.mp4 "wget http://www.fsnradionew  0.6s 
+------                                                                          
+ > [6/6] RUN wget -O /root/sample.mp4 "wget http://www.fsnradionews.com/FSNNews/FSNHeadlines.mp3":
+0.486 wget http://www.fsnradionews.com/FSNNews/FSNHeadlines.mp3: Scheme missing.
+------
+Dockerfile:24
+--------------------
+  22 |     
+  23 |     # Download sample file (optional, modify this part as necessary)
+  24 | >>> RUN wget -O /root/sample.mp4 "wget http://www.fsnradionews.com/FSNNews/FSNHeadlines.mp3"
+  25 |     
+  26 |     # Entry point to start necessary services and VLC
+--------------------
+ERROR: failed to solve: process "/bin/sh -c wget -O /root/sample.mp4 \"wget http://www.fsnradionews.com/FSNNews/FSNHeadlines.mp3\"" did not complete successfully: exit code: 1
+[root@localhost docker_run_vlc]# Dockerfile
+bash: Dockerfile: command not found...
+[root@localhost docker_run_vlc]# vi Dockerfile
+[root@localhost docker_run_vlc]# docker build -t dockerbyvlc:v2 .
+[+] Building 2.3s (9/9) FINISHED                                 docker:default
+ => [internal] load build definition from Dockerfile                       0.0s
+ => => transferring dockerfile: 1.00kB                                     0.0s
+ => [internal] load metadata for docker.io/library/centos:7                0.0s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [1/5] FROM docker.io/library/centos:7                                  0.0s
+ => CACHED [2/5] RUN yum install -y epel-release     && yum install -y ht  0.0s
+ => CACHED [3/5] RUN sed -i 's/geteuid/getppid/' /usr/bin/vlc              0.0s
+ => CACHED [4/5] RUN dbus-uuidgen --ensure                                 0.0s
+ => CACHED [5/5] RUN mkdir -p /tmp/xdg && chmod 700 /tmp/xdg               0.0s
+ => exporting to image                                                     2.1s
+ => => exporting layers                                                    2.0s
+ => => writing image sha256:6ccb5a08bcb14526b9f13ca76effae003e70cd904c2fb  0.0s
+ => => naming to docker.io/library/dockerbyvlc:v2                          0.0s
+[root@localhost docker_run_vlc]# docker images
+REPOSITORY     TAG       IMAGE ID       CREATED              SIZE
+dockerbyvlc    v2        6ccb5a08bcb1   About a minute ago   468MB
+centvlc        latest    d33832661c65   24 hours ago         801MB
+mycentosvlc1   latest    bde015bd609f   2 days ago           771MB
+mycentosvlc    latest    fb4c33774cd0   2 days ago           962MB
+mycentosfire   latest    84e1d0f818fe   2 days ago           868MB
+newcustom      v2        067a8bda76d5   8 days ago           122MB
+newcustom      v1        8026b89cb67f   8 days ago           571MB
+ubuntu         latest    bf3dc08bfed0   4 weeks ago          76.2MB
+centos         7         eeb6ee3f44bd   2 years ago          204MB
+centos         latest    5d0da3dc9764   2 years ago          231MB
+ubuntu         14.04     13b66b487594   3 years ago          197MB
+[root@localhost docker_run_vlc]# xhost +local:docker
+non-network local connections being added to access control list
+[root@localhost docker_run_vlc]# docker run -it --name vlcostasklastcont --env="DISPLAY=$DISPLAY" --net="host" -v /tmp/.X11-unix:/tmp/.X11-unix dockerbyvlc:v2
+VLC is not supposed to be run as root. Sorry.
+If you need to use real-time priorities and/or privileged TCP ports
+you can use vlc-wrapper (make sure it is Set-UID root and
+cannot be run by non-trusted users first).
+[root@localhost docker_run_vlc]# docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+[root@localhost docker_run_vlc]# docker ps -a
+CONTAINER ID   IMAGE            COMMAND                  CREATED          STATUS                           PORTS     NAMES
+716d3ee02482   dockerbyvlc:v2   "sh -c 'dbus-launch …"   28 seconds ago   Exited (1) 27 seconds ago                  vlcostasklastcont
+eac44819103a   centvlc          "sh -c 'Xvfb :99 -sc…"   24 hours ago     Exited (255) About an hour ago             vlcostasklast
+52adb6ba5e0d   mycentosvlc1     "vlc"                    47 hours ago     Exited (255) 25 hours ago                  pensive_merkle
+fb2706802d4a   mycentosvlc      "/bin/bash"              47 hours ago     Exited (0) 47 hours ago                    clever_cray
+e545155f891b   centos           "/bin/bash"              47 hours ago     Exited (0) 47 hours ago                    great_jennings
+85cc5bcddfad   mycentosvlc1     "vlc"                    47 hours ago     Exited (0) 46 hours ago                    vlcostask2
+2ed8141730ef   mycentosvlc1     "vlc"                    47 hours ago     Exited (0) 47 hours ago                    vlcostask
+707031cb6cbe   mycentosvlc      "/bin/bash"              2 days ago       Exited (1) 2 days ago                      vlcos1
+bb821e62af1a   mycentosfire     "/bin/bash"              2 days ago       Exited (130) 2 days ago                    firefoxos1
+cf74118f30b5   mycentosfire     "/bin/bash"              2 days ago       Exited (1) 2 days ago                      firefoxtask
+e789e6efa637   fb123e2e9bbb     "/usr/bin/firefox"       2 days ago       Exited (1) 2 days ago                      nkfirenew
+735cddefc957   fb123e2e9bbb     "/usr/bin/firefox"       2 days ago       Exited (1) 2 days ago                      nkfirenew1
+[root@localhost docker_run_vlc]# docker start vlcostasklastcont
+vlcostasklastcont
+[root@localhost docker_run_vlc]# docker exec -it vlcostasklastcont /bin/bash
+Error response from daemon: container 716d3ee02482062620577bd4a0a4d1844dcdbf7fe4f4ae776eb2be53b9b9271b is not running
+[root@localhost docker_run_vlc]# docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+[root@localhost docker_run_vlc]# docker start vlcostasklastcont
+vlcostasklastcont
+[root@localhost docker_run_vlc]# docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+[root@localhost docker_run_vlc]# docker start ^C
+[root@localhost docker_run_vlc]# docker start 716d3ee02482
+716d3ee02482
+[root@localhost docker_run_vlc]# docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+[root@localhost docker_run_vlc]# docker run -it --name vlcnk dockerbyvlc:v2
+VLC is not supposed to be run as root. Sorry.
+If you need to use real-time priorities and/or privileged TCP ports
+you can use vlc-wrapper (make sure it is Set-UID root and
+cannot be run by non-trusted users first).
+[root@localhost docker_run_vlc]# cd ..
+[root@localhost Docker]# mkdir docker_ubu_vlc
+[root@localhost Docker]# gedit Dockerfile
+[root@localhost Docker]# gedit entrypoint.sh
+[root@localhost Docker]# docker build -t vlccontainernk .
+[+] Building 844.0s (12/12) FINISHED                           docker:default
+ => [internal] load build definition from Dockerfile                     0.0s
+ => => transferring dockerfile: 889B                                     0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:20.04          5.2s
+ => [auth] library/ubuntu:pull token for registry-1.docker.io            0.0s
+ => [internal] load .dockerignore                                        0.1s
+ => => transferring context: 2B                                          0.0s
+ => [1/7] FROM docker.io/library/ubuntu:20.04@sha256:874aca52f79ae5f825  8.3s
+ => => resolve docker.io/library/ubuntu:20.04@sha256:874aca52f79ae5f825  0.0s
+ => => sha256:cc9cc8169c9517ae035cf293b15f06922cb8c6c864d62 424B / 424B  0.0s
+ => => sha256:2abc4dfd83182546da40dfae3e391db0810ad4a13 2.29kB / 2.29kB  0.0s
+ => => sha256:d4c3c94e5e10ed15503bda7e145a3652ee935c0 27.51MB / 27.51MB  6.1s
+ => => sha256:874aca52f79ae5f8258faff03e10ce99ae836f6e7 1.13kB / 1.13kB  0.0s
+ => => extracting sha256:d4c3c94e5e10ed15503bda7e145a3652ee935c0b2e9de9  1.9s
+ => [internal] load build context                                        0.0s
+ => => transferring context: 201B                                        0.0s
+ => [2/7] RUN apt-get update &&     apt-get install -y vlc &&     apt  800.9s
+ => [3/7] RUN apt-get update &&     apt-get install -y     pulseaudio   28.4s 
+ => [4/7] RUN useradd -ms /bin/bash vlcuser                              0.5s 
+ => [5/7] WORKDIR /home/vlcuser                                          0.1s 
+ => [6/7] COPY entrypoint.sh /home/vlcuser/entrypoint.sh                 0.1s
+ => ERROR [7/7] RUN chmod +x /home/vlcuser/entrypoint.sh                 0.3s
+------
+ > [7/7] RUN chmod +x /home/vlcuser/entrypoint.sh:
+0.276 chmod: changing permissions of '/home/vlcuser/entrypoint.sh': Operation not permitted
+------
+Dockerfile:28
+--------------------
+  26 |     # Add entrypoint script
+  27 |     COPY entrypoint.sh /home/vlcuser/entrypoint.sh
+  28 | >>> RUN chmod +x /home/vlcuser/entrypoint.sh
+  29 |     
+  30 |     # Set the entrypoint
+--------------------
+ERROR: failed to solve: process "/bin/sh -c chmod +x /home/vlcuser/entrypoint.sh" did not complete successfully: exit code: 1
+[root@localhost Docker]# python3
+Python 3.9.18 (main, Jan 24 2024, 00:00:00) 
+[GCC 11.4.1 20231218 (Red Hat 11.4.1-3)] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+KeyboardInterrupt
+>>> pip install cgiu
+  File "<stdin>", line 1
+    pip install cgiu
+        ^
+SyntaxError: invalid syntax
+>>> pip install cgi
+  File "<stdin>", line 1
+    pip install cgi
+        ^
+SyntaxError: invalid syntax
+>>> !pip install cgi
+  File "<stdin>", line 1
+    !pip install cgi
+    ^
+SyntaxError: invalid syntax
+>>> exit()
+[root@localhost Docker]# pip install cgi
+ERROR: Could not find a version that satisfies the requirement cgi (from versions: none)
+ERROR: No matching distribution found for cgi
+[root@localhost Docker]# pip3 install cgi
+ERROR: Could not find a version that satisfies the requirement cgi (from versions: none)
+ERROR: No matching distribution found for cgi
+[root@localhost Docker]# yum update
+Updating Subscription Management repositories.
+Unable to read consumer identity
+
+This system is not registered with an entitlement server. You can use "rhc" or "subscription-manager" to register.
+
+Repository 'd1' is missing name in configuration, using id.
+Repository 'd2' is missing name in configuration, using id.
+Last metadata expiration check: 21:52:04 ago on Saturday 01 June 2024 02:56:13 PM.
+Dependencies resolved.
+==============================================================================
+ Package                 Arch      Version             Repository        Size
+==============================================================================
+Upgrading:
+ google-chrome-stable    x86_64    125.0.6422.141-1    google-chrome    106 M
+
+Transaction Summary
+==============================================================================
+Upgrade  1 Package
+
+Total download size: 106 M
+Is this ok [y/N]: y
+Downloading Packages:
+google-chrome-stable-125.0.6422.141-1.x86_64.rpm                                                                                                                                                              4.0 MB/s | 106 MB     00:26    
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                                                                                         4.0 MB/s | 106 MB     00:26     
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                                                                                                                                                                                      1/1 
+  Running scriptlet: google-chrome-stable-125.0.6422.141-1.x86_64                                                                                                                                                                         1/2 
+  Upgrading        : google-chrome-stable-125.0.6422.141-1.x86_64 [===================================================================================================================================================================  ] 1/2^  Upgrading        : google-chrome-stable-125.0.6422.141-1.x86_64                                                                                                                                                                         1/2 
+  Running scriptlet: google-chrome-stable-125.0.6422.141-1.x86_64                                                                                                                                                                         1/2 
+  Running scriptlet: google-chrome-stable-125.0.6422.112-1.x86_64                                                                                                                                                                         2/2 
+  Cleanup          : google-chrome-stable-125.0.6422.112-1.x86_64                                                                                                                                                                         2/2 
+  Running scriptlet: google-chrome-stable-125.0.6422.112-1.x86_64                                                                                                                                                                         2/2 
+[root@localhost Docker]# ls
+ Dockerfile   dockerfile_run_vlc   docker_run_gui   docker_run_vlc   docker_ubu_vlc   entrypoint.sh  'view?usp=sharing'
+[root@localhost Docker]# docker_ubu_vlc/
+bash: docker_ubu_vlc/: Is a directory
+[root@localhost Docker]# cd docker_ubu_vlc/
+[root@localhost docker_ubu_vlc]# ls
+[root@localhost docker_ubu_vlc]# gedit Dockerfile
+[root@localhost docker_ubu_vlc]# gedit entrypoint.sh
+[root@localhost docker_ubu_vlc]# docker build -t vlcubu .
+[+] Building 24.7s (13/13) FINISHED                                                                                                                                                                                            docker:default
+ => [internal] load build definition from Dockerfile                                                                                                                                                                                     0.0s
+ => => transferring dockerfile: 943B                                                                                                                                                                                                     0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:20.04                                                                                                                                                                          7.6s
+ => [auth] library/ubuntu:pull token for registry-1.docker.io                                                                                                                                                                            0.0s
+ => [internal] load .dockerignore                                                                                                                                                                                                        0.0s
+ => => transferring context: 2B                                                                                                                                                                                                          0.0s
+ => [1/7] FROM docker.io/library/ubuntu:20.04@sha256:874aca52f79ae5f8258faff03e10ce99ae836f6e7d2df6ecd3da5c1cad3a912b                                                                                                                    0.0s
+ => [internal] load build context                                                                                                                                                                                                        0.0s
+ => => transferring context: 205B                                                                                                                                                                                                        0.0s
+ => CACHED [2/7] RUN apt-get update &&     apt-get install -y vlc &&     apt-get clean &&     rm -rf /var/lib/apt/lists/*                                                                                                                0.0s
+ => CACHED [3/7] RUN apt-get update &&     apt-get install -y     pulseaudio     alsa-utils &&     apt-get clean &&     rm -rf /var/lib/apt/lists/*                                                                                      0.0s
+ => CACHED [4/7] RUN useradd -ms /bin/bash vlcuser                                                                                                                                                                                       0.0s
+ => [5/7] COPY entrypoint.sh /home/vlcuser/entrypoint.sh                                                                                                                                                                                 0.1s
+ => [6/7] RUN chmod +x /home/vlcuser/entrypoint.sh                                                                                                                                                                                       0.3s
+ => [7/7] WORKDIR /home/vlcuser                                                                                                                                                                                                          0.1s
+ => exporting to image                                                                                                                                                                                                                  16.5s
+ => => exporting layers                                                                                                                                                                                                                 16.4s
+ => => writing image sha256:793584e394444fc8e8e50e6654200b6775dad6f916f7c4194b2d6beda61c5239                                                                                                                                             0.0s
+ => => naming to docker.io/library/vlcubu                                                                                                                                                                                                0.0s
+[root@localhost docker_ubu_vlc]# docker run -it --rm \
+    -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
+    -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
+    -v /root/Downloads/music.mp3:/home/vlcuser/audio/file.mp3 \
+    vlcubunk      
+Unable to find image 'vlcubunk:latest' locally
+^C  
+[root@localhost docker_ubu_vlc]# docker run -it --rm     -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native     -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native     -v /root/Downloads/music.mp3:/home/vlcuser/audio/file.mp3     vlcubu
+N: [pulseaudio] main.c: User-configured server at unix:/run/user/0/pulse/native, refusing to start/autospawn.
+VLC media player 3.0.9.2 Vetinari (revision 3.0.9.2-0-gd4c1aefe4d)
+[000055b355b09160] vlcpulse audio output error: PulseAudio server connection failure: Connection refused
+[000055b355b4f940] dbus interface error: Failed to connect to the D-Bus session daemon: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+[000055b355b4f940] main interface error: no suitable interface module
+[000055b355a6a460] main libvlc error: interface "dbus,none" initialization failed
+[000055b355b020c0] main interface error: no suitable interface module
+[000055b355a6a460] main libvlc error: interface "globalhotkeys,none" initialization failed
+[000055b355a6a460] main libvlc: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+error: XDG_RUNTIME_DIR not set in the environment.
+[000055b355b020c0] skins2 interface error: cannot initialize OSFactory
+[00007fc318002b80] filesystem stream error: cannot open file /path/to/your/audio/file.mp3 (No such file or directory)
+[00007fc31c000c80] main input error: Your input can't be opened
+[00007fc31c000c80] main input error: VLC is unable to open the MRL 'file:///path/to/your/audio/file.mp3'. Check the log for details.
+[000055b355b020c0] [cli] lua interface: Listening on host "*console".
+VLC media player 3.0.9.2 Vetinari
+Command Line Interface initialized. Type `help' for help.
+> ^C[000055b355b020c0] [cli] lua interface error: Error loading script /usr/lib/x86_64-linux-gnu/vlc/lua/intf/cli.luac: lua/intf/modules/host.lua:289: Interrupted.
+[root@localhost docker_ubu_vlc]# docker ps -a
+CONTAINER ID   IMAGE            COMMAND                  CREATED          STATUS                      PORTS     NAMES
+c1c99689eeb6   dockerbyvlc:v2   "sh -c 'dbus-launch …"   30 minutes ago   Exited (1) 30 minutes ago             vlcnk
+716d3ee02482   dockerbyvlc:v2   "sh -c 'dbus-launch …"   33 minutes ago   Exited (1) 30 minutes ago             vlcostasklastcont
+eac44819103a   centvlc          "sh -c 'Xvfb :99 -sc…"   25 hours ago     Exited (255) 2 hours ago              vlcostasklast
+52adb6ba5e0d   mycentosvlc1     "vlc"                    47 hours ago     Exited (255) 25 hours ago             pensive_merkle
+fb2706802d4a   mycentosvlc      "/bin/bash"              47 hours ago     Exited (0) 47 hours ago               clever_cray
+e545155f891b   centos           "/bin/bash"              47 hours ago     Exited (0) 47 hours ago               great_jennings
+85cc5bcddfad   mycentosvlc1     "vlc"                    2 days ago       Exited (0) 47 hours ago               vlcostask2
+2ed8141730ef   mycentosvlc1     "vlc"                    2 days ago       Exited (0) 2 days ago                 vlcostask
+707031cb6cbe   mycentosvlc      "/bin/bash"              2 days ago       Exited (1) 2 days ago                 vlcos1
+bb821e62af1a   mycentosfire     "/bin/bash"              2 days ago       Exited (130) 2 days ago               firefoxos1
+cf74118f30b5   mycentosfire     "/bin/bash"              2 days ago       Exited (1) 2 days ago                 firefoxtask
+e789e6efa637   fb123e2e9bbb     "/usr/bin/firefox"       2 days ago       Exited (1) 2 days ago                 nkfirenew
+735cddefc957   fb123e2e9bbb     "/usr/bin/firefox"       2 days ago       Exited (1) 2 days ago                 nkfirenew1
+[root@localhost docker_ubu_vlc]# docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+[root@localhost docker_ubu_vlc]# docker start c1c
+c1c
+[root@localhost docker_ubu_vlc]# docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+[root@localhost docker_ubu_vlc]# docker run -it --name newvlc --rm     -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native     -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native     -v /root/Downloads/music.mp3:/home/vlcuser/audio/file.mp3     vlcubu
+N: [pulseaudio] main.c: User-configured server at unix:/run/user/0/pulse/native, refusing to start/autospawn.
+VLC media player 3.0.9.2 Vetinari (revision 3.0.9.2-0-gd4c1aefe4d)
+[0000562c54fe3160] vlcpulse audio output error: PulseAudio server connection failure: Connection refused
+[0000562c55029960] dbus interface error: Failed to connect to the D-Bus session daemon: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+[0000562c55029960] main interface error: no suitable interface module
+[0000562c54f44460] main libvlc error: interface "dbus,none" initialization failed
+[0000562c54fdc0c0] main interface error: no suitable interface module
+[0000562c54f44460] main libvlc error: interface "globalhotkeys,none" initialization failed
+[0000562c54f44460] main libvlc: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+error: XDG_RUNTIME_DIR not set in the environment.
+[0000562c54fdc0c0] skins2 interface error: cannot initialize OSFactory
+[0000562c54fdc0c0] [cli] lua interface: Listening on host "*console".
+VLC media player 3.0.9.2 Vetinari
+Command Line Interface initialized. Type `help' for help.
+> [00007fe4480015f0] filesystem stream error: cannot open file /path/to/your/audio/file.mp3 (No such file or directory)
+[00007fe450006860] main input error: Your input can't be opened
+[00007fe450006860] main input error: VLC is unable to open the MRL 'file:///path/to/your/audio/file.mp3'. Check the log for details.
+[root@localhost docker_ubu_vlc]# docker ps 
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS     NAMES
+3ef5a8ab3176   vlcubu    "/home/vlcuser/entry…"   9 seconds ago   Up 8 seconds             newvlc
+[root@localhost docker_ubu_vlc]# docker attach newvlc
+read escape sequence
+[root@localhost docker_ubu_vlc]# docker ps 
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS     NAMES
+3ef5a8ab3176   vlcubu    "/home/vlcuser/entry…"   32 seconds ago   Up 31 seconds             newvlc
+[root@localhost docker_ubu_vlc]# docker exec -it newvlc /bin/bash
+vlcuser@3ef5a8ab3176:~$ ls
+audio  entrypoint.sh
+vlcuser@3ef5a8ab3176:~$ mv audio audio.mp3
+vlcuser@3ef5a8ab3176:~$ ls
+audio.mp3  entrypoint.sh
+vlcuser@3ef5a8ab3176:~$ read escape sequence
+[root@localhost docker_ubu_vlc]# docker container run -it --name provlc --env="DISPLAY" --device /dev/snd --net=host vlcubu
+VLC media player 3.0.9.2 Vetinari (revision 3.0.9.2-0-gd4c1aefe4d)
+[000055bf77f75460] main libvlc: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-vlcuser'
+[00007fbc84001630] filesystem stream error: cannot open file /path/to/your/audio/file.mp3 (No such file or directory)
+QObject::~QObject: Timers cannot be stopped from another thread
+[root@localhost docker_ubu_vlc]# docker container run -it --name provlc1 --env="DISPLAY" --device /dev/snd --net=host vlcubu
+VLC media player 3.0.9.2 Vetinari (revision 3.0.9.2-0-gd4c1aefe4d)
+[00005633e2680460] main libvlc: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-vlcuser'
+[00007fb6840017d0] filesystem stream error: cannot open file /path/to/your/audio/file.mp3 (No such file or directory)
+QObject::~QObject: Timers cannot be stopped from another thread
+[root@localhost docker_ubu_vlc]# vi Dockerfile
+[root@localhost docker_ubu_vlc]# docker container run -it --name provlc1 --env="DISPLAY" --device /dev/snd --net=host vlcubu
+docker: Error response from daemon: Conflict. The container name "/provlc1" is already in use by container "be686b67d79d8f6e96e74d29abbe66b3657cacf030edbf24d80ffe253c1e4924". You have to remove (or rename) that container to be able to reuse that name.
+See 'docker run --help'.
+[root@localhost docker_ubu_vlc]# docker container run -it --name provlc2 --env="DISPLAY" --device /dev/snd --net=host vlcubu
+VLC media player 3.0.9.2 Vetinari (revision 3.0.9.2-0-gd4c1aefe4d)
+[0000563ea2e2d460] main libvlc: Running vlc with the default interface. Use 'cvlc' to use vlc without interface.
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-vlcuser'
+[00007fc550001690] filesystem stream error: cannot open file /path/to/your/audio/file.mp3 (No such file or directory)
+Non-native QFileDialog supports only local files
+Non-native QFileDialog supports only local files
+Empty filename passed to function
+Non-native QFileDialog supports only local files
+Non-native QFileDialog supports only local files
+Non-native QFileDialog supports only local files
+QObject::~QObject: Timers cannot be stopped from another thread
+[root@localhost docker_ubu_vlc]# docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS     NAMES
+3ef5a8ab3176   vlcubu    "/home/vlcuser/entry…"   13 minutes ago   Up 13 minutes             newvlc
+[root@localhost docker_ubu_vlc]# docker ps -a
+CONTAINER ID   IMAGE            COMMAND                  CREATED          STATUS                      PORTS     NAMES
+388e67940418   vlcubu           "/home/vlcuser/entry…"   5 minutes ago    Exited (0) 5 minutes ago              provlc2
+be686b67d79d   vlcubu           "/home/vlcuser/entry…"   7 minutes ago    Exited (0) 7 minutes ago              provlc1
+4b79e0661253   vlcubu           "/home/vlcuser/entry…"   8 minutes ago    Exited (0) 8 minutes ago              provlc
+3ef5a8ab3176   vlcubu           "/home/vlcuser/entry…"   13 minutes ago   Up 13 minutes                         newvlc
+c1c99689eeb6   dockerbyvlc:v2   "sh -c 'dbus-launch …"   44 minutes ago   Exited (1) 14 minutes ago             vlcnk
+716d3ee02482   dockerbyvlc:v2   "sh -c 'dbus-launch …"   47 minutes ago   Exited (1) 45 minutes ago             vlcostasklastcont
+eac44819103a   centvlc          "sh -c 'Xvfb :99 -sc…"   25 hours ago     Exited (255) 2 hours ago              vlcostasklast
+52adb6ba5e0d   mycentosvlc1     "vlc"                    47 hours ago     Exited (255) 25 hours ago             pensive_merkle
+fb2706802d4a   mycentosvlc      "/bin/bash"              47 hours ago     Exited (0) 47 hours ago               clever_cray
+e545155f891b   centos           "/bin/bash"              47 hours ago     Exited (0) 47 hours ago               great_jennings
+85cc5bcddfad   mycentosvlc1     "vlc"                    2 days ago       Exited (0) 47 hours ago               vlcostask2
+2ed8141730ef   mycentosvlc1     "vlc"                    2 days ago       Exited (0) 2 days ago                 vlcostask
+707031cb6cbe   mycentosvlc      "/bin/bash"              2 days ago       Exited (1) 2 days ago                 vlcos1
+bb821e62af1a   mycentosfire     "/bin/bash"              2 days ago       Exited (130) 2 days ago               firefoxos1
+cf74118f30b5   mycentosfire     "/bin/bash"              2 days ago       Exited (1) 2 days ago                 firefoxtask
+e789e6efa637   fb123e2e9bbb     "/usr/bin/firefox"       2 days ago       Exited (1) 2 days ago                 nkfirenew
+735cddefc957   fb123e2e9bbb     "/usr/bin/firefox"       2 days ago       Exited (1) 2 days ago                 nkfirenew1
+[root@localhost docker_ubu_vlc]# docker start provlc2
+provlc2
+[root@localhost docker_ubu_vlc]# docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS              PORTS     NAMES
+388e67940418   vlcubu    "/home/vlcuser/entry…"   8 minutes ago    Up About a minute             provlc2
+3ef5a8ab3176   vlcubu    "/home/vlcuser/entry…"   16 minutes ago   Up 16 minutes                 newvlc
+[root@localhost docker_ubu_vlc]# docker cp /root/Downloads/music.mp3 provlc2:/root/music.mp3
+Successfully copied 4.7MB to provlc2:/root/music.mp3
+[root@localhost docker_ubu_vlc]# docker start provlc2
+[root@localhost docker_ubu_vlc]# docker cp /root/Downloads/music.mp3 provlc2:/home/vlcuser/music.mp3
+Successfully copied 4.7MB to provlc2:/home/vlcuser/music.mp3
+[root@localhost docker_ubu_vlc]# docker restart provlc2
+provlc2
+[root@localhost docker_ubu_vlc]# apt install dbus
+bash: apt: command not found...
+Install package 'apt' to provide command 'apt'? [N/y] y
+
+
+ * Waiting in queue... 
+ * Loading list of packages.... 
+The following packages have to be installed:
+ apt-2.9.2-1.el9.x86_64	Command-line package manager for Debian packages
+ apt-libs-2.9.2-1.el9.x86_64	Runtime libraries for apt
+ dpkg-1.21.21-1.el9.x86_64	Package maintenance system for Debian Linux
+ libmd-1.1.0-1.el9.x86_64	Library that provides message digest functions from BSD systems
+ xxhash-libs-0.8.2-1.el9.x86_64	Extremely fast hash algorithm - library
+Proceed with changes? [N/y] y
+
+
+ * Waiting in queue... 
+ * Waiting for authentication... 
+ * Waiting in queue... 
+ * Loading list of packages.... 
+ * Downloading packages... ^C
+[root@localhost docker_ubu_vlc]# docker exec -it  provlc2 /bin/bash
+vlcuser@localhost:~$ apt install pulseaudio
+E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)
+E: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?
+vlcuser@localhost:~$ apt install PulseAudio
+E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)
+E: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?
+vlcuser@localhost:~$ read escape sequence
+[root@localhost docker_ubu_vlc]# docker container run -it --name provlc2 --env="DISPLAY" --device /dev/snd --net=host vlcubu
